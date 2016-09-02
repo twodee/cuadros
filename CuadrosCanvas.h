@@ -6,6 +6,8 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_4_1_Core>
 
+#include "CuadrosRenderer.h"
+
 class CuadrosCanvas : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core {
   public:
     explicit CuadrosCanvas(QWidget *parent = nullptr);
@@ -15,6 +17,7 @@ class CuadrosCanvas : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core 
     void resizeGL(int width, int height);
 
   private:
+    CuadrosRenderer renderer;
 };
 
 
