@@ -2,6 +2,7 @@
 #define CUADROSWINDOW_H
 
 #include <QMainWindow>
+#include <QSplitter>
 
 #include "CuadrosCanvas.h"
 
@@ -16,6 +17,7 @@ class CuadrosWindow : public QMainWindow {
 
   private:
     CuadrosCanvas *canvas;
+    QSplitter *horizontal_splitter;
 };
 
 /* ------------------------------------------------------------------------- */

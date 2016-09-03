@@ -6,14 +6,23 @@
 
 CuadrosWindow::CuadrosWindow(QWidget *parent) :
   QMainWindow(parent) {
-  canvas = new CuadrosCanvas(this);
+
+  horizontal_splitter = new QSplitter(this);
+  horizontal_splitter->setOrientation(Qt::Horizontal);
+
+  canvas = new CuadrosCanvas(horizontal_splitter);
 
   QSizePolicy p1(QSizePolicy::Preferred, QSizePolicy::Preferred);
   p1.setHorizontalStretch(1);
   p1.setVerticalStretch(1);
   canvas->setSizePolicy(p1);
 
-  this->setCentralWidget(canvas);
+  QWidget *settings_panel = new QWidget(horizontal_splitter);;
+
+  horizontal_splitter->addWidget(canvas);
+  horizontal_splitter->addWidget(settings_panel);
+
+  this->setCentralWidget(horizontal_splitter);
 }
 
 /* ------------------------------------------------------------------------- */
