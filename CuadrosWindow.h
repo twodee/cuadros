@@ -15,8 +15,11 @@ class CuadrosWindow : public QMainWindow {
     explicit CuadrosWindow(QWidget *parent = 0);
     ~CuadrosWindow();
 
+    void open(const std::string &path);
+
   private:
     CuadrosCanvas *canvas;
+    CuadrosRenderer *renderer;
     QSplitter *horizontal_splitter;
 };
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <QApplication>
+#include <QCommandLineParser>
 
 #include "CuadrosWindow.h"
 
@@ -14,8 +15,17 @@ int main(int argc, char **argv) {
   /* format.setDepthBufferSize(24); */
   QSurfaceFormat::setDefaultFormat(format);
 
+  QCommandLineParser parser;
+  parser.setApplicationDescription("An image editor for me.");
+  parser.addPositionalArgument("file", "Image file.");
+  parser.process(app);
+
+  const QStringList args = parser.positionalArguments();
+
   CuadrosWindow window;
+  window.open(args.begin()->toStdString());
   window.show();
+
   return app.exec();
 }
 

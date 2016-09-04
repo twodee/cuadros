@@ -15,6 +15,7 @@ class CuadrosCanvas : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core 
     void initializeGL();
     void paintGL();
     void resizeGL(int width, int height);
+    CuadrosRenderer *getRenderer();
 
   private:
     CuadrosRenderer renderer;

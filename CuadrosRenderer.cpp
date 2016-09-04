@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "CuadrosRenderer.h"
+#include "twodee/NField.h"
 #include "twodee/UtilitiesOpenGL.h"
 
 using namespace td;
@@ -75,14 +76,20 @@ void CuadrosRenderer::initializeGL() {
   OpenGL::CheckError("after array");
 
   texture = new Texture(0);
-  float texels[32 * 32];
-  for (int r = 0; r < 32; ++r) {
-    for (int c = 0; c < 32; ++c) {
-      texels[r * 32 + c] = r % 2 == 0 ? 1.0f : 0.0f;
-    }
-  }
-  texture->Channels(Texture::GRAYSCALE);
-  texture->Upload(32, 32, texels);
+  /* float texels[32 * 32]; */
+  /* for (int r = 0; r < 32; ++r) { */
+    /* for (int c = 0; c < 32; ++c) { */
+      /* texels[r * 32 + c] = r % 2 == 0 ? 1.0f : 0.0f; */
+    /* } */
+  /* } */
+
+
+  /* texture->Channels(Texture::GRAYSCALE); */
+  /* texture->Upload(32, 32, texels); */
+
+  NField<float, 2> *image = new NField<float, 2>(path);
+  texture->Channels(Texture::RGBA);
+  texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
 
   program->Bind();
   program->SetUniform("tex", *texture);
@@ -111,6 +118,12 @@ void CuadrosRenderer::render() {
   program->Unbind();
 
   OpenGL::CheckError("after render");
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::show(const std::string &path) {
+  this->path = path;
 }
 
 /* ------------------------------------------------------------------------- */

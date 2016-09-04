@@ -11,6 +11,7 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   horizontal_splitter->setOrientation(Qt::Horizontal);
 
   canvas = new CuadrosCanvas(horizontal_splitter);
+  renderer = canvas->getRenderer();
 
   QSizePolicy p1(QSizePolicy::Preferred, QSizePolicy::Preferred);
   p1.setHorizontalStretch(1);
@@ -28,6 +29,12 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
 /* ------------------------------------------------------------------------- */
 
 CuadrosWindow::~CuadrosWindow() {
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosWindow::open(const std::string &path) {
+  renderer->show(path);
 }
 
 /* ------------------------------------------------------------------------- */

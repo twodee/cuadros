@@ -30,3 +30,9 @@ void CuadrosCanvas::resizeGL(int width, int height) {
 
 /* ------------------------------------------------------------------------- */
 
+CuadrosRenderer *CuadrosCanvas::getRenderer() {
+  return &renderer;
+}
+
+/* ------------------------------------------------------------------------- */
+
