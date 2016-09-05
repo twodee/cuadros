@@ -26,10 +26,10 @@ void CuadrosRenderer::initializeGL() {
   glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
 
   float positions[] = {
-    -0.9f, -0.9f, 0.0f,
-    0.9f, -0.9f, 0.0f,
-    -0.9f, 0.9f, 0.0f,
-    0.9f, 0.9f, 0.0f
+    -0.95f, -0.95f, 0.0f,
+    0.95f, -0.95f, 0.0f,
+    -0.95f, 0.95f, 0.0f,
+    0.95f, 0.95f, 0.0f
   };
 
   float texcoords[] = {
@@ -110,9 +110,9 @@ void CuadrosRenderer::resize(int width, int height) {
   float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
 
   if (window_aspect < image_aspect) {
-    projection = QMatrix4<float>::GetOrthographic(-1.0f, 1.0f, -1.0f / window_aspect, 1.0f / window_aspect);
+    projection = QMatrix4<float>::GetOrthographic(-1.0f, 1.0f, -1.0f / window_aspect * image_aspect, 1.0f / window_aspect * image_aspect);
   } else {
-    projection = QMatrix4<float>::GetOrthographic(-window_aspect, window_aspect, -1.0f, 1.0f);
+    projection = QMatrix4<float>::GetOrthographic(-1.0f * window_aspect / image_aspect, 1.0f * window_aspect / image_aspect, -1.0f, 1.0f);
   }
 }
 
