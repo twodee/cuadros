@@ -4,6 +4,9 @@
 #include <string>
 
 #include "twodee/Configuration.h"
+
+#include "twodee/NField.h"
+#include "twodee/QMatrix4.h"
 #include "twodee/ShaderProgram.h"
 #include "twodee/Texture.h"
 #include "twodee/VertexAttributes.h"
@@ -27,6 +30,8 @@ class CuadrosRenderer {
     td::Texture *texture;
 
     std::string path;
+    td::NField<float, 2> *image;
+    td::QMatrix4<float> projection;
 };
 
 #endif

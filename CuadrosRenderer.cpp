@@ -11,7 +11,8 @@ using namespace td;
 CuadrosRenderer::CuadrosRenderer() :
   attributes(NULL),
   array(NULL),
-  program(NULL) {
+  program(NULL),
+  image(NULL) {
 }
 
 /* ------------------------------------------------------------------------- */
@@ -46,13 +47,15 @@ void CuadrosRenderer::initializeGL() {
   std::string vertex_source =
     "#version 410\n"
     "\n"
+    "uniform mat4 projection;\n"
+    "\n"
     "in vec3 position;\n"
     "in vec2 texcoords;\n"
     "\n"
     "out vec2 ftexcoords;\n"
     "\n"
     "void main() {\n"
-    "  gl_Position = vec4(position, 1.0);\n"
+    "  gl_Position = projection * vec4(position, 1.0);\n"
     "  ftexcoords = texcoords;\n"
     "}\n";
 
@@ -87,7 +90,7 @@ void CuadrosRenderer::initializeGL() {
   /* texture->Channels(Texture::GRAYSCALE); */
   /* texture->Upload(32, 32, texels); */
 
-  NField<float, 2> *image = new NField<float, 2>(path);
+  image = new NField<float, 2>(path);
   texture->Channels(Texture::RGBA);
   texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
 
@@ -102,6 +105,15 @@ void CuadrosRenderer::initializeGL() {
 
 void CuadrosRenderer::resize(int width, int height) {
   glViewport(0, 0, width, height);  
+
+  float window_aspect = width / (float) height;
+  float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
+
+  if (window_aspect < image_aspect) {
+    projection = QMatrix4<float>::GetOrthographic(-1.0f, 1.0f, -1.0f / window_aspect, 1.0f / window_aspect);
+  } else {
+    projection = QMatrix4<float>::GetOrthographic(-window_aspect, window_aspect, -1.0f, 1.0f);
+  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -110,6 +122,7 @@ void CuadrosRenderer::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   program->Bind();
+  program->SetUniform("projection", projection);
   texture->Bind();
   array->Bind();
   array->DrawSequence(GL_TRIANGLE_STRIP);
