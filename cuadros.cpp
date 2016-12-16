@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
   CuadrosWindow window;
   window.open(args.begin()->toStdString());
   window.show();
+  window.resize(768, 512);
 
   return app.exec();
 }

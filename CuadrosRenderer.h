@@ -14,7 +14,6 @@
 
 class CuadrosRenderer {
   public:
-
     CuadrosRenderer();
     ~CuadrosRenderer();
 
@@ -22,6 +21,14 @@ class CuadrosRenderer {
     void resize(int width, int height);
     void initializeGL();
     void show(const std::string &path);
+
+    void setInterpolation(int mode);
+    int getInterpolation() const;
+
+    void leftMouseDownAt(int x, int y);
+    void leftMouseDraggedTo(int x, int y);
+    void leftMouseUpAt(int x, int y);
+    void scroll(int nTicks);
 
   private:
     td::VertexAttributes *attributes;
@@ -32,6 +39,10 @@ class CuadrosRenderer {
     std::string path;
     td::NField<float, 2> *image;
     td::QMatrix4<float> projection;
+    int interpolation_mode;
+    
+    const static int INTERPOLATION_NEAREST = 0;
+    const static int INTERPOLATION_LINEAR = 1;
 };
 
 #endif

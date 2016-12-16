@@ -12,7 +12,8 @@ CuadrosRenderer::CuadrosRenderer() :
   attributes(NULL),
   array(NULL),
   program(NULL),
-  image(NULL) {
+  image(NULL),
+  interpolation_mode(1) {
 }
 
 /* ------------------------------------------------------------------------- */
@@ -91,8 +92,9 @@ void CuadrosRenderer::initializeGL() {
   /* texture->Upload(32, 32, texels); */
 
   image = new NField<float, 2>(path);
-  texture->Channels(Texture::RGBA);
+  texture->Channels(Texture::RGB);
   texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
+  setInterpolation(INTERPOLATION_NEAREST);
 
   program->Bind();
   program->SetUniform("tex", *texture);
@@ -137,6 +139,55 @@ void CuadrosRenderer::render() {
 
 void CuadrosRenderer::show(const std::string &path) {
   this->path = path;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::setInterpolation(int mode) {
+  interpolation_mode = mode; 
+  if (interpolation_mode == INTERPOLATION_LINEAR) {
+    texture->Magnify(Texture::MAGNIFY_LINEAR);
+    texture->Minify(Texture::MINIFY_LINEAR);
+  } else {
+    texture->Magnify(Texture::MAGNIFY_NEAREST);
+    texture->Minify(Texture::MINIFY_NEAREST);
+  }
+  texture->SetParameters();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int CuadrosRenderer::getInterpolation() const {
+  return interpolation_mode; 
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::leftMouseDownAt(int x, int y) {
+  std::cout << "x: " << x << std::endl;
+  std::cout << "y: " << y << std::endl;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
+  
+  std::cout << "x: " << x << std::endl;
+  std::cout << "y: " << y << std::endl;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::leftMouseUpAt(int x, int y) {
+  
+  std::cout << "x: " << x << std::endl;
+  std::cout << "y: " << y << std::endl;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::scroll(int nTicks) {
+  std::cout << "nTicks: " << nTicks << std::endl;
 }
 
 /* ------------------------------------------------------------------------- */

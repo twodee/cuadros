@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSplitter>
+#include <QComboBox>
 
 #include "CuadrosCanvas.h"
 
@@ -21,6 +22,9 @@ class CuadrosWindow : public QMainWindow {
     CuadrosCanvas *canvas;
     CuadrosRenderer *renderer;
     QSplitter *horizontal_splitter;
+
+    QComboBox *settings_picker;
+    QComboBox *interpolation_picker;
 };
 
 /* ------------------------------------------------------------------------- */

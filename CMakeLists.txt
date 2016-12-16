@@ -4,6 +4,17 @@ project(cuadros)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_C_FLAGS "-pedantic -Wall -std=c99")
+  set(CMAKE_CXX_FLAGS "-pedantic -Wall -std=c++11")
+
+  if (USE_DEBUG)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+  endif()
+endif()
+message("FLAGS: ${CMAKE_CXX_FLAGS}")
+
 # For ease of development, I'm guessing a shortcut to Qt is installed.
 set(CMAKE_PREFIX_PATH "$ENV{HOME}/tarballs/qtroot")
 
