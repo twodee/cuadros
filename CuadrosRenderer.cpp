@@ -2,6 +2,8 @@
 
 #include "CuadrosRenderer.h"
 #include "twodee/NField.h"
+#include "twodee/QVector4.h"
+#include "twodee/QMath.h"
 #include "twodee/UtilitiesOpenGL.h"
 
 using namespace td;
@@ -27,10 +29,10 @@ void CuadrosRenderer::initializeGL() {
   glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
 
   float positions[] = {
-    -0.95f, -0.95f, 0.0f,
-    0.95f, -0.95f, 0.0f,
-    -0.95f, 0.95f, 0.0f,
-    0.95f, 0.95f, 0.0f
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 0.0f
   };
 
   float texcoords[] = {
@@ -49,6 +51,7 @@ void CuadrosRenderer::initializeGL() {
     "#version 410\n"
     "\n"
     "uniform mat4 projection;\n"
+    "uniform mat4 modelview;\n"
     "\n"
     "in vec3 position;\n"
     "in vec2 texcoords;\n"
@@ -56,7 +59,7 @@ void CuadrosRenderer::initializeGL() {
     "out vec2 ftexcoords;\n"
     "\n"
     "void main() {\n"
-    "  gl_Position = projection * vec4(position, 1.0);\n"
+    "  gl_Position = projection * modelview * vec4(position, 1.0);\n"
     "  ftexcoords = texcoords;\n"
     "}\n";
 
@@ -80,19 +83,19 @@ void CuadrosRenderer::initializeGL() {
   OpenGL::CheckError("after array");
 
   texture = new Texture(0);
-  /* float texels[32 * 32]; */
-  /* for (int r = 0; r < 32; ++r) { */
-    /* for (int c = 0; c < 32; ++c) { */
-      /* texels[r * 32 + c] = r % 2 == 0 ? 1.0f : 0.0f; */
-    /* } */
-  /* } */
 
-
-  /* texture->Channels(Texture::GRAYSCALE); */
   /* texture->Upload(32, 32, texels); */
 
-  image = new NField<float, 2>(path);
-  texture->Channels(Texture::RGB);
+  image = new NField<unsigned char, 2>(path);
+  if (image->GetChannelCount() == 1) {
+    texture->Channels(Texture::GRAYSCALE);
+  } else if (image->GetChannelCount() == 3) {
+    texture->Channels(Texture::RGB);
+  } else if (image->GetChannelCount() == 4) {
+    texture->Channels(Texture::RGBA);
+  } else {
+    std::cout << "no!!!!!!!!!!" << std::endl;
+  }
   texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
   setInterpolation(INTERPOLATION_NEAREST);
 
@@ -101,12 +104,16 @@ void CuadrosRenderer::initializeGL() {
   program->Unbind();
 
   OpenGL::CheckError("after initialize");
+
+  modelview = QMatrix4<float>(1.0f);
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::resize(int width, int height) {
   glViewport(0, 0, width, height);  
+  dimensions[0] = width;
+  dimensions[1] = height;
 
   float window_aspect = width / (float) height;
   float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
@@ -116,6 +123,7 @@ void CuadrosRenderer::resize(int width, int height) {
   } else {
     projection = QMatrix4<float>::GetOrthographic(-1.0f * window_aspect / image_aspect, 1.0f * window_aspect / image_aspect, -1.0f, 1.0f);
   }
+  std::cout << "projection: " << projection << std::endl;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -125,6 +133,7 @@ void CuadrosRenderer::render() {
 
   program->Bind();
   program->SetUniform("projection", projection);
+  program->SetUniform("modelview", modelview);
   texture->Bind();
   array->Bind();
   array->DrawSequence(GL_TRIANGLE_STRIP);
@@ -164,30 +173,73 @@ int CuadrosRenderer::getInterpolation() const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDownAt(int x, int y) {
-  std::cout << "x: " << x << std::endl;
-  std::cout << "y: " << y << std::endl;
+  /* std::cout << "x: " << x << std::endl; */
+  /* std::cout << "y: " << y << std::endl; */
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
-  
-  std::cout << "x: " << x << std::endl;
-  std::cout << "y: " << y << std::endl;
+  float half_width = 0.5f * dimensions[0];
+  float half_height = 0.5f * dimensions[1];
+  float half_image_width = 0.5f * image->GetDimensions()[0];
+  float half_image_height = 0.5f * image->GetDimensions()[1];
+  float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
+  float window_aspect = dimensions[0] / (float) dimensions[1];
+
+  QVector4<float> p((x - half_width) / half_width, (y - half_height) / half_height, 0.0f, 1.0f);
+
+  if (window_aspect < image_aspect) {
+    p[1] *= image_aspect / window_aspect;
+  } else {
+    p[0] /= image_aspect * window_aspect;
+  }
+  std::cout << "p: " << p << std::endl;
+
+  p[0] = half_image_width * p[0] + half_image_width;
+  p[1] = half_image_height * p[1] + half_image_height;
+  std::cout << "p: " << p << std::endl;
+
+  QVector2<int> pixel((int) p[0], (int) p[1]);
+  if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
+      pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1]) {
+    (*image)(pixel)[0] = 0;
+    (*image)(pixel)[1] = 0;
+    (*image)(pixel)[2] = 0;
+    texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
+  }
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseUpAt(int x, int y) {
-  
-  std::cout << "x: " << x << std::endl;
-  std::cout << "y: " << y << std::endl;
+  /* std::cout << "x: " << x << std::endl; */
+  /* std::cout << "y: " << y << std::endl; */
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::rightMouseDownAt(int x, int y) {
+  mouse_at[0] = x;
+  mouse_at[1] = y;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::rightMouseDraggedTo(int x, int y) {
+  modelview = QMatrix4<float>::GetTranslate((x - mouse_at[0]) / (float) dimensions[0] * 2, (y - mouse_at[1]) / (float) dimensions[1] * 2, 0.0f) * modelview;
+  mouse_at[0] = x;
+  mouse_at[1] = y;
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::scroll(int nTicks) {
-  std::cout << "nTicks: " << nTicks << std::endl;
+  if (nTicks != 0) {
+    float factor = 1 + nTicks / 100.0f;;
+    std::cout << "nTicks: " << nTicks << std::endl;
+    modelview = QMatrix4<float>::GetScale(factor, factor, 1.0f) * modelview;
+  }
 }
 
 /* ------------------------------------------------------------------------- */

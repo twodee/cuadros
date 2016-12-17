@@ -7,6 +7,7 @@
 
 #include "twodee/NField.h"
 #include "twodee/QMatrix4.h"
+#include "twodee/QVector2.h"
 #include "twodee/ShaderProgram.h"
 #include "twodee/Texture.h"
 #include "twodee/VertexAttributes.h"
@@ -28,6 +29,9 @@ class CuadrosRenderer {
     void leftMouseDownAt(int x, int y);
     void leftMouseDraggedTo(int x, int y);
     void leftMouseUpAt(int x, int y);
+    void rightMouseDownAt(int x, int y);
+    void rightMouseDraggedTo(int x, int y);
+    void rightMouseUpAt(int x, int y);
     void scroll(int nTicks);
 
   private:
@@ -37,9 +41,12 @@ class CuadrosRenderer {
     td::Texture *texture;
 
     std::string path;
-    td::NField<float, 2> *image;
+    td::NField<unsigned char, 2> *image;
     td::QMatrix4<float> projection;
+    td::QMatrix4<float> modelview;
     int interpolation_mode;
+    td::QVector2<int> dimensions;
+    td::QVector2<int> mouse_at;
     
     const static int INTERPOLATION_NEAREST = 0;
     const static int INTERPOLATION_LINEAR = 1;

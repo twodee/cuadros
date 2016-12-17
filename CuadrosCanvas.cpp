@@ -38,7 +38,11 @@ CuadrosRenderer *CuadrosCanvas::getRenderer() {
 
 void CuadrosCanvas::mousePressEvent(QMouseEvent *event) {
   makeCurrent();
-  renderer.leftMouseDownAt(event->x(), height() - event->y());
+  if (event->buttons() & Qt::LeftButton) {
+    renderer.leftMouseDownAt(event->x(), height() - event->y());
+  } else if (event->buttons() & Qt::RightButton) {
+    renderer.rightMouseDownAt(event->x(), height() - event->y());
+  }
   update();
 }
 
@@ -46,7 +50,11 @@ void CuadrosCanvas::mousePressEvent(QMouseEvent *event) {
 
 void CuadrosCanvas::mouseMoveEvent(QMouseEvent *event) {
   makeCurrent();
-  renderer.leftMouseDraggedTo(event->x(), height() - event->y());
+  if (event->buttons() & Qt::LeftButton) {
+    renderer.leftMouseDraggedTo(event->x(), height() - event->y());
+  } else if (event->buttons() & Qt::RightButton) {
+    renderer.rightMouseDraggedTo(event->x(), height() - event->y());
+  }
   update();
 }
 
