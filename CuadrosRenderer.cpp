@@ -190,15 +190,15 @@ void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
   QVector4<float> p((x - half_width) / half_width, (y - half_height) / half_height, 0.0f, 1.0f);
 
   if (window_aspect < image_aspect) {
-    p[1] *= image_aspect / window_aspect;
+    p[1] = p[1] * image_aspect / window_aspect;
   } else {
-    p[0] /= image_aspect * window_aspect;
+    p[0] = p[0] * window_aspect / image_aspect;
   }
-  std::cout << "p: " << p << std::endl;
+
+  p = modelview.GetInverse() * p;
 
   p[0] = half_image_width * p[0] + half_image_width;
   p[1] = half_image_height * p[1] + half_image_height;
-  std::cout << "p: " << p << std::endl;
 
   QVector2<int> pixel((int) p[0], (int) p[1]);
   if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
@@ -237,7 +237,6 @@ void CuadrosRenderer::rightMouseDraggedTo(int x, int y) {
 void CuadrosRenderer::scroll(int nTicks) {
   if (nTicks != 0) {
     float factor = 1 + nTicks / 100.0f;;
-    std::cout << "nTicks: " << nTicks << std::endl;
     modelview = QMatrix4<float>::GetScale(factor, factor, 1.0f) * modelview;
   }
 }
