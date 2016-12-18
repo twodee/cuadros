@@ -25,12 +25,18 @@ find_package(Qt5OpenGL REQUIRED)
 add_subdirectory(twodee)
 add_definitions(${TWODEE_DEFINITIONS})
 
+set(CUADROS_EXECUTABLE "Cuadros")
+
 add_executable (
-  cuadros
+  ${CUADROS_EXECUTABLE}
   cuadros.cpp
   CuadrosCanvas.cpp
   CuadrosRenderer.cpp
   CuadrosWindow.cpp
 )
-include_directories(cuadros ${CMAKE_BINARY_DIR}/include twodee/include ${TWODEE_INCLUDE_DIRECTORIES} ${Qt5Widgets_INCLUDE_DIRS})
-target_link_libraries(cuadros Qt5::Widgets Qt5::OpenGL ${TWODEE_LIBRARIES} ${OPENGL_LIBRARIES})
+set_target_properties(${CUADROS_EXECUTABLE} PROPERTIES MACOSX_BUNDLE TRUE)
+if(NOT APPLE)
+  set_target_properties(${CUADROS_EXECUTABLE} PROPERTIES OUTPUT_NAME cuadros)
+endif()
+include_directories(${CUADROS_EXECUTABLE} ${CMAKE_BINARY_DIR}/include twodee/include ${TWODEE_INCLUDE_DIRECTORIES} ${Qt5Widgets_INCLUDE_DIRS})
+target_link_libraries(${CUADROS_EXECUTABLE} Qt5::Widgets Qt5::OpenGL ${TWODEE_LIBRARIES} ${OPENGL_LIBRARIES})

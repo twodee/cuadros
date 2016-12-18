@@ -34,6 +34,8 @@ class CuadrosRenderer {
     void rightMouseUpAt(int x, int y);
     void scroll(int nTicks);
 
+    void saveAs(const std::string &path) const;
+
   private:
     td::VertexAttributes *attributes;
     td::VertexArray *array;

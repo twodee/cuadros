@@ -243,3 +243,9 @@ void CuadrosRenderer::scroll(int nTicks) {
 
 /* ------------------------------------------------------------------------- */
 
+void CuadrosRenderer::saveAs(const std::string &path) const {
+  image->Write(path);
+}
+
+/* ------------------------------------------------------------------------- */
+

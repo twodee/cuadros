@@ -25,6 +25,8 @@ class CuadrosWindow : public QMainWindow {
 
     QComboBox *settings_picker;
     QComboBox *interpolation_picker;
+
+    QString last_directory;
 };
 
 /* ------------------------------------------------------------------------- */

@@ -1,9 +1,13 @@
 #include <iostream>
 
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
 #include <QSpacerItem>
 #include <QStackedWidget>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QMenu>
 #include <QVBoxLayout>
 
 #include "CuadrosWindow.h"
@@ -11,7 +15,8 @@
 /* ------------------------------------------------------------------------- */
 
 CuadrosWindow::CuadrosWindow(QWidget *parent) :
-  QMainWindow(parent) {
+  QMainWindow(parent),
+  last_directory(QDir::homePath()) {
 
   horizontal_splitter = new QSplitter(this);
   horizontal_splitter->setOrientation(Qt::Horizontal);
@@ -60,12 +65,46 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   settings_panel_layout->addWidget(settings_pager);
 
   this->setCentralWidget(horizontal_splitter);
+ 
+
+  // Status bar
+  QStatusBar *statusBar = new QStatusBar(this);
+  setStatusBar(statusBar);
+
+  // Menubar
+  QMenuBar *menuBar = new QMenuBar();
+  setMenuBar(menuBar);
+
+  QAction *action_save_as = new QAction(this);
+  action_save_as->setText("Save as");
+  action_save_as->setShortcut(Qt::SHIFT + Qt::CTRL + Qt::Key_S);
+
+  QMenu *menuFile = new QMenu("File");
+  menuFile->addAction(action_save_as);
+
+  QMenu *menuView = new QMenu("View");
+  menuView->addAction(action_save_as);
+
+  setWindowTitle("Cuadros");
+
+  menuBar->addMenu(menuFile);
+  menuBar->addMenu(menuView);
+  menuBar->addAction(menuFile->menuAction());
+  menuBar->addAction(menuView->menuAction());
 
   // Actions
   connect(interpolation_picker, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](int i) {
     canvas->makeCurrent(); // no effect without this
     renderer->setInterpolation(i);
     canvas->update();
+  });
+
+  connect(action_save_as, &QAction::triggered, [=]() {
+    QString path = QFileDialog::getSaveFileName(this, "Save File", last_directory, "Images (*.png *.jpg)");
+    if (path.length() != 0) {
+      last_directory = QFileInfo(path).absolutePath();
+      renderer->saveAs(path.toStdString());
+    }
   });
 }
 
