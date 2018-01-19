@@ -5,8 +5,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_C_FLAGS "-pedantic -Wall -std=c99")
-  set(CMAKE_CXX_FLAGS "-pedantic -Wall -std=c++11")
+  set(CMAKE_C_FLAGS "-pedantic -Wall -std=c99 -Wno-keyword-macro")
+  set(CMAKE_CXX_FLAGS "-pedantic -Wall -std=c++11 -Wno-keyword-macro")
 
   if (USE_DEBUG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
@@ -14,6 +14,19 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   endif()
 endif()
 message("FLAGS: ${CMAKE_CXX_FLAGS}")
+
+find_package(ImageMagick COMPONENTS Magick++ REQUIRED)
+if(IMAGEMAGICK_FOUND)
+  add_definitions(-DMAGICKCORE_HDRI_ENABLE=0)
+  add_definitions(-DMAGICKCORE_QUANTUM_DEPTH=16)
+  include_directories(${ImageMagick_INCLUDE_DIRS} /usr/local/include)
+endif(IMAGEMAGICK_FOUND)
+
+# set(IMAGEMAGICK_DEFINITIONS -DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16)
+# add_definitions(${IMAGEMAGICK_DEFINITIONS})
+# list(APPEND ImageMagick_INCLUDE_DIRS /usr/include/x86_64-linux-gnu/ImageMagick-6 /usr/include/ImageMagick-6)
+# include_directories(${ImageMagick_INCLUDE_DIRS})
+# include_directories(${ImageMagick_INCLUDE_DIRS} /usr/local/include)
 
 # For ease of development, I'm guessing a shortcut to Qt is installed.
 set(CMAKE_PREFIX_PATH "$ENV{HOME}/tarballs/qtroot")

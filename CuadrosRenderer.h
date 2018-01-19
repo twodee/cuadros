@@ -33,6 +33,8 @@ class CuadrosRenderer {
     void rightMouseDraggedTo(int x, int y);
     void rightMouseUpAt(int x, int y);
     void scroll(int nTicks);
+    bool isMouseOverImage(int x, int y) const;
+    td::QVector2<int> mouseToImage(int x, int y) const;
 
     void saveAs(const std::string &path) const;
 

@@ -177,9 +177,17 @@ void CuadrosRenderer::leftMouseDownAt(int x, int y) {
   /* std::cout << "y: " << y << std::endl; */
 }
 
+/* ------------------------------------------------------------------------- */ 
+
+bool CuadrosRenderer::isMouseOverImage(int x, int y) const {
+  QVector2<int> pixel = mouseToImage(x, y);
+  return pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
+         pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1];
+}
+
 /* ------------------------------------------------------------------------- */
 
-void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
+td::QVector2<int> CuadrosRenderer::mouseToImage(int x, int y) const {
   float half_width = 0.5f * dimensions[0];
   float half_height = 0.5f * dimensions[1];
   float half_image_width = 0.5f * image->GetDimensions()[0];
@@ -201,6 +209,14 @@ void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
   p[1] = half_image_height * p[1] + half_image_height;
 
   QVector2<int> pixel((int) p[0], (int) p[1]);
+
+  return pixel;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
+  QVector2<int> pixel = mouseToImage(x, y);
   if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
       pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1]) {
     (*image)(pixel)[0] = 0;

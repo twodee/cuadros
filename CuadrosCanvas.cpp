@@ -7,6 +7,9 @@
 CuadrosCanvas::CuadrosCanvas(QWidget *parent) :
   QOpenGLWidget(parent),
   renderer() {
+  // Qt doesn't by default emit mouse events unless a button is down. We want
+  // events on hovering too.
+  setMouseTracking(true);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -50,12 +53,24 @@ void CuadrosCanvas::mousePressEvent(QMouseEvent *event) {
 
 void CuadrosCanvas::mouseMoveEvent(QMouseEvent *event) {
   makeCurrent();
-  if (event->buttons() & Qt::LeftButton) {
-    renderer.leftMouseDraggedTo(event->x(), height() - event->y());
-  } else if (event->buttons() & Qt::RightButton) {
-    renderer.rightMouseDraggedTo(event->x(), height() - event->y());
+ 
+  int x = event->x();
+  int y = height() - event->y(); 
+
+  if (renderer.isMouseOverImage(x, y)) {
+    setCursor(Qt::CrossCursor);
+  } else {
+    setCursor(Qt::ArrowCursor);
   }
-  update();
+
+  if (event->buttons()) {
+    if (event->buttons() & Qt::LeftButton) {
+      renderer.leftMouseDraggedTo(x, y);
+    } else if (event->buttons() & Qt::RightButton) {
+      renderer.rightMouseDraggedTo(x, y);
+    }
+    update();
+  }
 }
 
 /* ------------------------------------------------------------------------- */
