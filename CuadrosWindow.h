@@ -17,6 +17,7 @@ class CuadrosWindow : public QMainWindow {
     ~CuadrosWindow();
 
     void open(const std::string &path);
+    void open(int width, int height);
 
   private:
     CuadrosCanvas *canvas;

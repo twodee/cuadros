@@ -86,7 +86,6 @@ void CuadrosRenderer::initializeGL() {
 
   /* texture->Upload(32, 32, texels); */
 
-  image = new NField<unsigned char, 2>(path);
   if (image->GetChannelCount() == 1) {
     texture->Channels(Texture::GRAYSCALE);
   } else if (image->GetChannelCount() == 3) {
@@ -148,6 +147,14 @@ void CuadrosRenderer::render() {
 
 void CuadrosRenderer::show(const std::string &path) {
   this->path = path;
+  image = new NField<unsigned char, 2>(path);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::show(int width, int height) {
+  image = new NField<unsigned char, 2>(QVector2<int>(width, height));
+  image->Clear(128);
 }
 
 /* ------------------------------------------------------------------------- */

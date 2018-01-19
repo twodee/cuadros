@@ -22,6 +22,7 @@ class CuadrosRenderer {
     void resize(int width, int height);
     void initializeGL();
     void show(const std::string &path);
+    void show(int width, int height);
 
     void setInterpolation(int mode);
     int getInterpolation() const;

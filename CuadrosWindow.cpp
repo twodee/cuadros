@@ -121,3 +121,9 @@ void CuadrosWindow::open(const std::string &path) {
 
 /* ------------------------------------------------------------------------- */
 
+void CuadrosWindow::open(int width, int height) {
+  renderer->show(width, height);
+}
+
+/* ------------------------------------------------------------------------- */
+
