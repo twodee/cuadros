@@ -25,8 +25,56 @@ CuadrosRenderer::~CuadrosRenderer() {
 
 /* ------------------------------------------------------------------------- */
 
+void CuadrosRenderer::initializeBackground() {
+  float positions[] = {
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 0.0f
+  };
+
+  background_attributes = new VertexAttributes();
+  background_attributes->AddAttribute("position", 4, 3, positions);
+  OpenGL::CheckError("after bg attributes");
+
+  std::string vertex_source =
+    "#version 410\n"
+    "\n"
+    "in vec3 position;\n"
+    "\n"
+    "void main() {\n"
+    "  gl_Position = vec4(position, 1.0);\n"
+    "}\n";
+
+  std::string fragment_source =
+    "#version 410\n"
+    "\n"
+    "const int TILE_SIZE = 10;\n"
+    "const vec4 LIGHT = vec4(vec3(0.8), 1.0);\n"
+    "const vec4 DARK = vec4(vec3(0.6), 1.0);\n"
+    "\n"
+    "out vec4 frag_color;\n"
+    "\n"
+    "void main() {\n"
+    "  float h = mod(floor(gl_FragCoord.x / TILE_SIZE), 2);\n"
+    "  float v = mod(floor(gl_FragCoord.y / TILE_SIZE), 2);\n"
+    "  float gray = abs(h - v);\n"
+    "  frag_color = mix(LIGHT, DARK, gray);\n"
+    "}\n";
+
+  background_program = ShaderProgram::FromSource(vertex_source, fragment_source);
+  OpenGL::CheckError("after bg program");
+
+  background_array = new VertexArray(*background_program, *background_attributes);
+  OpenGL::CheckError("after bg array");
+}
+
+/* ------------------------------------------------------------------------- */
+
 void CuadrosRenderer::initializeGL() {
   glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
+
+  initializeBackground();
 
   float positions[] = {
     -1.0f, -1.0f, 0.0f,
@@ -129,6 +177,12 @@ void CuadrosRenderer::resize(int width, int height) {
 
 void CuadrosRenderer::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  background_program->Bind();
+  background_array->Bind();
+  background_array->DrawSequence(GL_TRIANGLE_STRIP);
+  background_array->Unbind();
+  background_program->Unbind();
 
   program->Bind();
   program->SetUniform("projection", projection);

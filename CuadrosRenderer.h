@@ -40,6 +40,12 @@ class CuadrosRenderer {
     void saveAs(const std::string &path) const;
 
   private:
+    void initializeBackground();
+
+    td::VertexAttributes *background_attributes;
+    td::VertexArray *background_array;
+    td::ShaderProgram *background_program;
+
     td::VertexAttributes *attributes;
     td::VertexArray *array;
     td::ShaderProgram *program;
