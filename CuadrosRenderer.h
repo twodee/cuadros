@@ -45,6 +45,7 @@ class CuadrosRenderer {
     td::VertexAttributes *background_attributes;
     td::VertexArray *background_array;
     td::ShaderProgram *background_program;
+    td::Texture *background_texture;
 
     td::VertexAttributes *attributes;
     td::VertexArray *array;

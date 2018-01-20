@@ -40,26 +40,28 @@ void CuadrosRenderer::initializeBackground() {
   std::string vertex_source =
     "#version 410\n"
     "\n"
+    "uniform vec2 resolution;\n"
+    "\n"
     "in vec3 position;\n"
+    "\n"
+    "out vec2 ftexcoords;\n"
     "\n"
     "void main() {\n"
     "  gl_Position = vec4(position, 1.0);\n"
+    "  ftexcoords = (position.xy + 1.0) * 0.5 * resolution;\n"
     "}\n";
 
   std::string fragment_source =
     "#version 410\n"
     "\n"
-    "const int TILE_SIZE = 10;\n"
-    "const vec4 LIGHT = vec4(vec3(0.8), 1.0);\n"
-    "const vec4 DARK = vec4(vec3(0.6), 1.0);\n"
+    "uniform sampler2D background;\n"
+    "\n"
+    "in vec2 ftexcoords;\n"
     "\n"
     "out vec4 frag_color;\n"
     "\n"
     "void main() {\n"
-    "  float h = mod(floor(gl_FragCoord.x / TILE_SIZE), 2);\n"
-    "  float v = mod(floor(gl_FragCoord.y / TILE_SIZE), 2);\n"
-    "  float gray = abs(h - v);\n"
-    "  frag_color = mix(LIGHT, DARK, gray);\n"
+    "  frag_color = vec4(vec3(texture(background, ftexcoords).r), 1.0);\n"
     "}\n";
 
   background_program = ShaderProgram::FromSource(vertex_source, fragment_source);
@@ -67,6 +69,21 @@ void CuadrosRenderer::initializeBackground() {
 
   background_array = new VertexArray(*background_program, *background_attributes);
   OpenGL::CheckError("after bg array");
+
+  background_texture = new Texture(1);
+  float texels[] = {
+    0.8f, 0.6f,
+    0.6f, 0.8f
+  };
+  background_texture->Channels(Texture::GRAYSCALE);
+  background_texture->Magnify(Texture::MAGNIFY_NEAREST);
+  background_texture->Minify(Texture::MINIFY_NEAREST);
+  background_texture->Wrap(Texture::REPEAT);
+  background_texture->Upload(2, 2, texels);
+
+  background_program->Bind();
+  background_program->SetUniform("background", *background_texture);
+  background_program->Unbind();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -178,7 +195,10 @@ void CuadrosRenderer::resize(int width, int height) {
 void CuadrosRenderer::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  const float TILE_SIZE = 10.0f;
+
   background_program->Bind();
+  background_program->SetUniform("resolution", dimensions[0] / (2 * TILE_SIZE), dimensions[1] / (2 * TILE_SIZE));
   background_array->Bind();
   background_array->DrawSequence(GL_TRIANGLE_STRIP);
   background_array->Unbind();
