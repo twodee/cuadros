@@ -38,6 +38,7 @@ class CuadrosRenderer {
     td::QVector2<int> mouseToImage(int x, int y) const;
 
     void saveAs(const std::string &path) const;
+    void setColor(const td::QVector3<int> rgb);
 
   private:
     void fill(int x, int y);
@@ -63,6 +64,7 @@ class CuadrosRenderer {
     td::QVector2<int> dimensions;
     td::QVector2<int> mouse_at;
     float scale;
+    td::QVector3<int> rgb;
     
     const static int INTERPOLATION_NEAREST = 0;
     const static int INTERPOLATION_LINEAR = 1;

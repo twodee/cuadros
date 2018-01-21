@@ -16,7 +16,8 @@
 
 CuadrosWindow::CuadrosWindow(QWidget *parent) :
   QMainWindow(parent),
-  last_directory(QDir::homePath()) {
+  last_directory(QDir::homePath()),
+  rgb(255, 0, 0) {
 
   horizontal_splitter = new QSplitter(this);
   horizontal_splitter->setOrientation(Qt::Horizontal);
@@ -37,9 +38,12 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   QSpacerItem *vertical_spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
   settings_picker = new QComboBox();
+  settings_picker->addItem("Drawing");
   settings_picker->addItem("Display");
 
   QStackedWidget *settings_pager = new QStackedWidget();
+
+  // --------------------------------------------------------------------------
 
   QWidget *display_page = new QWidget();
 
@@ -55,7 +59,57 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   display_page_layout->addWidget(interpolation_picker, 0, 1, 1, 1);
   display_page_layout->addItem(vertical_spacer, 1, 0, 1, 2);
 
+  // --------------------------------------------------------------------------
+
+  QWidget *drawing_page = new QWidget();
+
+  QLabel *rgb_labels[] = {
+    new QLabel("R"),
+    new QLabel("G"),
+    new QLabel("B")
+  };
+
+  QLabel *hsv_labels[] = {
+    new QLabel("H"),
+    new QLabel("S"),
+    new QLabel("V")
+  };
+
+  for (int d = 0; d < 3; ++d) {
+    rgb_sliders[d] = new QSlider(Qt::Horizontal, drawing_page);
+    hsv_sliders[d] = new QSlider(Qt::Horizontal, drawing_page);
+    rgb_boxes[d] = new QSpinBox(drawing_page);
+    hsv_boxes[d] = new QSpinBox(drawing_page);
+    rgb_sliders[d]->setMaximum(255);
+    hsv_sliders[d]->setMaximum(255);
+    rgb_boxes[d]->setMaximum(255);
+    hsv_boxes[d]->setMaximum(255);
+  }
+
+  swatch = new QPushButton(drawing_page);
+  swatch->setFlat(true);
+  swatch->setAutoFillBackground(true);
+  swatch->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+  QGridLayout *drawing_page_layout = new QGridLayout(drawing_page);
+  drawing_page_layout->setSpacing(-1);
+  drawing_page_layout->setContentsMargins(0, 0, 0, 0);
+
+  for (int d = 0; d < 3; ++d) {
+    drawing_page_layout->addWidget(rgb_labels[d], d, 0, 1, 1);
+    drawing_page_layout->addWidget(hsv_labels[d], d + 3, 0, 1, 1);
+    drawing_page_layout->addWidget(rgb_sliders[d], d, 1, 1, 1);
+    drawing_page_layout->addWidget(hsv_sliders[d], d + 3, 1, 1, 1);
+    drawing_page_layout->addWidget(rgb_boxes[d], d, 2, 1, 1);
+    drawing_page_layout->addWidget(hsv_boxes[d], d + 3, 2, 1, 1);
+  }
+
+  drawing_page_layout->addWidget(swatch, 6, 0, 1, 3);
+
+  // --------------------------------------------------------------------------
+
   // Add pages
+  settings_pager->addWidget(drawing_page);
   settings_pager->addWidget(display_page);
 
   QVBoxLayout *settings_panel_layout = new QVBoxLayout(settings_panel);
@@ -65,7 +119,6 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   settings_panel_layout->addWidget(settings_pager);
 
   this->setCentralWidget(horizontal_splitter);
- 
 
   // Status bar
   QStatusBar *statusBar = new QStatusBar(this);
@@ -99,6 +152,8 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
     canvas->update();
   });
 
+  connect(settings_picker, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), settings_pager, &QStackedWidget::setCurrentIndex);
+
   connect(action_save_as, &QAction::triggered, [=]() {
     QString path = QFileDialog::getSaveFileName(this, "Save File", last_directory, "Images (*.png *.jpg)");
     if (path.length() != 0) {
@@ -106,6 +161,43 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
       renderer->saveAs(path.toStdString());
     }
   });
+
+  auto on_rgb_slider_changed = [=](int i) {
+    for (int d = 0; d < 3; ++d) {
+      rgb[d] = rgb_sliders[d]->value();
+    }
+    syncColor();
+  };
+
+  auto on_rgb_box_changed = [=](int i) {
+    for (int d = 0; d < 3; ++d) {
+      rgb[d] = rgb_boxes[d]->value();
+    }
+    syncColor();
+  };
+
+  for (int d = 0; d < 3; ++d) {
+    connect(rgb_sliders[d], &QSlider::valueChanged, on_rgb_slider_changed);
+    connect(rgb_boxes[d], static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), on_rgb_box_changed);
+  }
+
+  syncColor();
+
+  // Really, I just want to disable Qt's auto focusing on the first spinbox.
+  canvas->setFocus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosWindow::syncColor() {
+  for (int d = 0; d < 3; ++d) {
+    rgb_boxes[d]->setValue(rgb[d]);
+    rgb_sliders[d]->setValue(rgb[d]);
+  }
+  renderer->setColor(rgb);
+  QPalette palette;
+  palette.setColor(QPalette::Button, QColor(rgb[0], rgb[1], rgb[2]));
+  swatch->setPalette(palette);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -16,7 +16,8 @@ CuadrosRenderer::CuadrosRenderer() :
   program(NULL),
   image(NULL),
   interpolation_mode(INTERPOLATION_NEAREST),
-  scale(1.0f) {
+  scale(1.0f),
+  rgb(0, 0, 0) {
 }
 
 /* ------------------------------------------------------------------------- */
@@ -334,7 +335,7 @@ void CuadrosRenderer::fill(int x, int y) {
   if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
       pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1]) {
     for (int d = 0; d < image->GetChannelCount(); ++d) {
-      (*image)(pixel)[d] = 0;
+      (*image)(pixel)[d] = rgb[d];
     }
     texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
   }
@@ -390,6 +391,12 @@ void CuadrosRenderer::scroll(int nTicks) {
 
 void CuadrosRenderer::saveAs(const std::string &path) const {
   image->Write(path);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::setColor(const td::QVector3<int> rgb) {
+  this->rgb = rgb; 
 }
 
 /* ------------------------------------------------------------------------- */
