@@ -88,11 +88,7 @@ void CuadrosRenderer::initializeBackground() {
 
 /* ------------------------------------------------------------------------- */
 
-void CuadrosRenderer::initializeGL() {
-  glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
-
-  initializeBackground();
-
+void CuadrosRenderer::initializeImage() {
   float positions[] = {
     -1.0f, -1.0f, 0.0f,
     1.0f, -1.0f, 0.0f,
@@ -138,6 +134,7 @@ void CuadrosRenderer::initializeGL() {
     "out vec4 frag_color;\n"
     "\n"
     "void main() {\n"
+    /* "  frag_color = vec4(ftexcoords, 0.0, 1.0);\n" */
     "  frag_color = texture(tex, ftexcoords);\n"
     "}\n";
 
@@ -151,15 +148,21 @@ void CuadrosRenderer::initializeGL() {
 
   /* texture->Upload(32, 32, texels); */
 
+  std::cout << "image->GetChannelCount(): " << image->GetChannelCount() << std::endl;
   if (image->GetChannelCount() == 1) {
+    std::cout << "gray" << std::endl;
     texture->Channels(Texture::GRAYSCALE);
   } else if (image->GetChannelCount() == 3) {
+    std::cout << "rgb" << std::endl;
     texture->Channels(Texture::RGB);
   } else if (image->GetChannelCount() == 4) {
+    std::cout << "rgba" << std::endl;
     texture->Channels(Texture::RGBA);
   } else {
     std::cout << "no!!!!!!!!!!" << std::endl;
   }
+  std::cout << "image->GetDimensions(): " << image->GetDimensions() << std::endl;
+  texture->Wrap(Texture::REPEAT);
   texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
   setInterpolation(INTERPOLATION_NEAREST);
 
@@ -168,6 +171,17 @@ void CuadrosRenderer::initializeGL() {
   program->Unbind();
 
   OpenGL::CheckError("after initialize");
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::initializeGL() {
+  glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  initializeBackground();
+  initializeImage();
 
   modelview = QMatrix4<float>(1.0f);
 }
@@ -227,8 +241,17 @@ void CuadrosRenderer::show(const std::string &path) {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::show(int width, int height) {
-  image = new NField<unsigned char, 2>(QVector2<int>(width, height));
-  image->Clear(128);
+  image = new NField<unsigned char, 2>(QVector2<int>(width, height), 3);
+  /* *(*image)(0) = (unsigned char) 128; */
+  /* *(*image)(1) = (unsigned char) 255; */
+  /* *(*image)(2) = (unsigned char) 255; */
+  /* *(*image)(3) = (unsigned char) 128; */
+  /* *(*image)(4) = 50; */
+  /* *(*image)(5) = 50; */
+  /* *(*image)(6) = 0; */
+  /* *(*image)(7) = 0; */
+  /* image->Write("foo.png"); */
+  image->Clear(255);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -254,8 +277,7 @@ int CuadrosRenderer::getInterpolation() const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDownAt(int x, int y) {
-  /* std::cout << "x: " << x << std::endl; */
-  /* std::cout << "y: " << y << std::endl; */
+  fill(x, y);
 }
 
 /* ------------------------------------------------------------------------- */ 
@@ -297,12 +319,18 @@ td::QVector2<int> CuadrosRenderer::mouseToImage(int x, int y) const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
+  fill(x, y);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::fill(int x, int y) {
   QVector2<int> pixel = mouseToImage(x, y);
   if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
       pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1]) {
-    (*image)(pixel)[0] = 0;
-    (*image)(pixel)[1] = 0;
-    (*image)(pixel)[2] = 0;
+    for (int d = 0; d < image->GetChannelCount(); ++d) {
+      (*image)(pixel)[d] = 0;
+    }
     texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
   }
 }
