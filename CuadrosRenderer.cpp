@@ -39,6 +39,9 @@ void CuadrosRenderer::initializeBackground() {
   background_attributes->AddAttribute("position", 4, 3, positions);
   OpenGL::CheckError("after bg attributes");
 
+  // The background's origin should start at the top left. Otherwise it will
+  // shift down when the window is resized, which is distracting and awkward.
+  // We flip the y in -1:1 space, and then rangemap to [0, 1].
   std::string vertex_source =
     "#version 410\n"
     "\n"
@@ -50,7 +53,7 @@ void CuadrosRenderer::initializeBackground() {
     "\n"
     "void main() {\n"
     "  gl_Position = vec4(position, 1.0);\n"
-    "  ftexcoords = (position.xy + 1.0) * 0.5 * resolution;\n"
+    "  ftexcoords = (vec2(position.x, -position.y) + 1.0) * 0.5 * resolution;\n"
     "}\n";
 
   std::string fragment_source =

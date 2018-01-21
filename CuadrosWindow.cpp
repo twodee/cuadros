@@ -17,7 +17,7 @@
 CuadrosWindow::CuadrosWindow(QWidget *parent) :
   QMainWindow(parent),
   last_directory(QDir::homePath()),
-  rgb(255, 0, 0) {
+  rgb(0, 0, 0) {
 
   horizontal_splitter = new QSplitter(this);
   horizontal_splitter->setOrientation(Qt::Horizontal);
