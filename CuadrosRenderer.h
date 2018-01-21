@@ -61,6 +61,7 @@ class CuadrosRenderer {
     int interpolation_mode;
     td::QVector2<int> dimensions;
     td::QVector2<int> mouse_at;
+    float scale;
     
     const static int INTERPOLATION_NEAREST = 0;
     const static int INTERPOLATION_LINEAR = 1;

@@ -15,7 +15,8 @@ CuadrosRenderer::CuadrosRenderer() :
   array(NULL),
   program(NULL),
   image(NULL),
-  interpolation_mode(1) {
+  interpolation_mode(INTERPOLATION_NEAREST),
+  scale(1.0f) {
 }
 
 /* ------------------------------------------------------------------------- */
@@ -338,8 +339,6 @@ void CuadrosRenderer::fill(int x, int y) {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseUpAt(int x, int y) {
-  /* std::cout << "x: " << x << std::endl; */
-  /* std::cout << "y: " << y << std::endl; */
 }
 
 /* ------------------------------------------------------------------------- */
@@ -362,7 +361,10 @@ void CuadrosRenderer::rightMouseDraggedTo(int x, int y) {
 void CuadrosRenderer::scroll(int nTicks) {
   if (nTicks != 0) {
     float factor = 1 + nTicks / 100.0f;;
-    modelview = QMatrix4<float>::GetScale(factor, factor, 1.0f) * modelview;
+    if (scale * factor > 0.1f) {
+      scale *= factor;
+      modelview = QMatrix4<float>::GetScale(factor, factor, 1.0f) * modelview;
+    }
   }
 }
 
