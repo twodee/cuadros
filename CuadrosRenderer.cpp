@@ -279,6 +279,8 @@ int CuadrosRenderer::getInterpolation() const {
 
 void CuadrosRenderer::leftMouseDownAt(int x, int y) {
   fill(x, y);
+  mouse_at[0] = x;
+  mouse_at[1] = y;
 }
 
 /* ------------------------------------------------------------------------- */ 
@@ -320,7 +322,9 @@ td::QVector2<int> CuadrosRenderer::mouseToImage(int x, int y) const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
-  fill(x, y);
+  fill(mouse_at[0], mouse_at[1], x, y);
+  mouse_at[0] = x;
+  mouse_at[1] = y;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -333,6 +337,20 @@ void CuadrosRenderer::fill(int x, int y) {
       (*image)(pixel)[d] = 0;
     }
     texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::fill(int x1, int y1, int x2, int y2) {
+  QVector2<int> a(x1, y1);   
+  QVector2<int> b(x2, y2);   
+  QVector2<float> diff(b - a);
+  int n = a.ChessboardDistanceTo(b);
+  for (int i = 0; i <= n; ++i) {
+    float t = n == 0 ? 0.0 : i / (float) n;
+    QVector2<float> mix(QVector2<float>(a) + diff * t);
+    fill(roundf(mix[0]), roundf(mix[1]));
   }
 }
 

@@ -41,6 +41,7 @@ class CuadrosRenderer {
 
   private:
     void fill(int x, int y);
+    void fill(int x1, int y1, int x2, int y2);
     void initializeBackground();
     void initializeImage();
 
