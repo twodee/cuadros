@@ -132,8 +132,13 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   action_save_as->setText("Save as");
   action_save_as->setShortcut(Qt::SHIFT + Qt::CTRL + Qt::Key_S);
 
+  QAction *action_open = new QAction(this);
+  action_open->setText("Open");
+  action_open->setShortcut(Qt::CTRL + Qt::Key_O);
+
   QMenu *menuFile = new QMenu("File");
   menuFile->addAction(action_save_as);
+  menuFile->addAction(action_open);
 
   QMenu *menuView = new QMenu("View");
   menuView->addAction(action_save_as);
@@ -159,6 +164,17 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
     if (path.length() != 0) {
       last_directory = QFileInfo(path).absolutePath();
       renderer->saveAs(path.toStdString());
+    }
+  });
+
+  connect(action_open, &QAction::triggered, [=]() {
+    QString path = QFileDialog::getOpenFileName(this, "Open File", last_directory, "Images (*.png *.jpg)");
+    if (path.length() != 0) {
+      last_directory = QFileInfo(path).absolutePath();
+      CuadrosWindow *window = new CuadrosWindow();
+      window->open(path.toStdString());
+      window->show();
+      window->resize(768, 512);
     }
   });
 
@@ -208,6 +224,7 @@ CuadrosWindow::~CuadrosWindow() {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosWindow::open(const std::string &path) {
+  last_directory = QFileInfo(QString::fromStdString(path)).absolutePath();
   renderer->show(path);
 }
 
