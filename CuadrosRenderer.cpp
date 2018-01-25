@@ -14,10 +14,11 @@ CuadrosRenderer::CuadrosRenderer() :
   attributes(NULL),
   array(NULL),
   program(NULL),
-  image(NULL),
+  frames(),
   interpolation_mode(INTERPOLATION_NEAREST),
   scale(1.0f),
   rgb(0, 0, 0) {
+  frame_index = -1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -151,24 +152,17 @@ void CuadrosRenderer::initializeImage() {
 
   texture = new Texture(0);
 
-  /* texture->Upload(32, 32, texels); */
-
-  std::cout << "image->GetChannelCount(): " << image->GetChannelCount() << std::endl;
-  if (image->GetChannelCount() == 1) {
-    std::cout << "gray" << std::endl;
+  if (frames[frame_index]->GetChannelCount() == 1) {
     texture->Channels(Texture::GRAYSCALE);
-  } else if (image->GetChannelCount() == 3) {
-    std::cout << "rgb" << std::endl;
+  } else if (frames[frame_index]->GetChannelCount() == 3) {
     texture->Channels(Texture::RGB);
-  } else if (image->GetChannelCount() == 4) {
-    std::cout << "rgba" << std::endl;
+  } else if (frames[frame_index]->GetChannelCount() == 4) {
     texture->Channels(Texture::RGBA);
   } else {
     std::cout << "no!!!!!!!!!!" << std::endl;
   }
-  std::cout << "image->GetDimensions(): " << image->GetDimensions() << std::endl;
   texture->Wrap(Texture::REPEAT);
-  texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
+  texture->Upload(frames[frame_index]->GetDimensions()[0], frames[frame_index]->GetDimensions()[1], frames[frame_index]->GetData());
   setInterpolation(INTERPOLATION_NEAREST);
 
   program->Bind();
@@ -199,14 +193,13 @@ void CuadrosRenderer::resize(int width, int height) {
   dimensions[1] = height;
 
   float window_aspect = width / (float) height;
-  float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
+  float image_aspect = frames[frame_index]->GetDimensions()[0] / (float) frames[frame_index]->GetDimensions()[1];
 
   if (window_aspect < image_aspect) {
     projection = QMatrix4<float>::GetOrthographic(-1.0f, 1.0f, -1.0f / window_aspect * image_aspect, 1.0f / window_aspect * image_aspect);
   } else {
     projection = QMatrix4<float>::GetOrthographic(-1.0f * window_aspect / image_aspect, 1.0f * window_aspect / image_aspect, -1.0f, 1.0f);
   }
-  std::cout << "projection: " << projection << std::endl;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -240,23 +233,16 @@ void CuadrosRenderer::render() {
 
 void CuadrosRenderer::show(const std::string &path) {
   this->path = path;
-  image = new NField<unsigned char, 2>(path);
+  frame_index = 0;
+  frames.push_back(new NField<unsigned char, 2>(path));
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::show(int width, int height) {
-  image = new NField<unsigned char, 2>(QVector2<int>(width, height), 3);
-  /* *(*image)(0) = (unsigned char) 128; */
-  /* *(*image)(1) = (unsigned char) 255; */
-  /* *(*image)(2) = (unsigned char) 255; */
-  /* *(*image)(3) = (unsigned char) 128; */
-  /* *(*image)(4) = 50; */
-  /* *(*image)(5) = 50; */
-  /* *(*image)(6) = 0; */
-  /* *(*image)(7) = 0; */
-  /* image->Write("foo.png"); */
-  image->Clear(255);
+  frame_index = 0;
+  frames.push_back(new NField<unsigned char, 2>(QVector2<int>(width, height), 3));
+  frames[0]->Clear(255);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -291,8 +277,8 @@ void CuadrosRenderer::leftMouseDownAt(int x, int y) {
 
 bool CuadrosRenderer::isMouseOverImage(int x, int y) const {
   QVector2<int> pixel = mouseToImage(x, y);
-  return pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
-         pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1];
+  return pixel[0] >= 0 && pixel[0] < frames[frame_index]->GetDimensions()[0] &&
+         pixel[1] >= 0 && pixel[1] < frames[frame_index]->GetDimensions()[1];
 }
 
 /* ------------------------------------------------------------------------- */
@@ -300,9 +286,9 @@ bool CuadrosRenderer::isMouseOverImage(int x, int y) const {
 td::QVector2<int> CuadrosRenderer::mouseToImage(int x, int y) const {
   float half_width = 0.5f * dimensions[0];
   float half_height = 0.5f * dimensions[1];
-  float half_image_width = 0.5f * image->GetDimensions()[0];
-  float half_image_height = 0.5f * image->GetDimensions()[1];
-  float image_aspect = image->GetDimensions()[0] / (float) image->GetDimensions()[1];
+  float half_image_width = 0.5f * frames[frame_index]->GetDimensions()[0];
+  float half_image_height = 0.5f * frames[frame_index]->GetDimensions()[1];
+  float image_aspect = frames[frame_index]->GetDimensions()[0] / (float) frames[frame_index]->GetDimensions()[1];
   float window_aspect = dimensions[0] / (float) dimensions[1];
 
   QVector4<float> p((x - half_width) / half_width, (y - half_height) / half_height, 0.0f, 1.0f);
@@ -335,13 +321,19 @@ void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
 
 void CuadrosRenderer::fill(int x, int y) {
   QVector2<int> pixel = mouseToImage(x, y);
-  if (pixel[0] >= 0 && pixel[0] < image->GetDimensions()[0] &&
-      pixel[1] >= 0 && pixel[1] < image->GetDimensions()[1]) {
-    for (int d = 0; d < image->GetChannelCount(); ++d) {
-      (*image)(pixel)[d] = rgb[d];
+  if (pixel[0] >= 0 && pixel[0] < frames[frame_index]->GetDimensions()[0] &&
+      pixel[1] >= 0 && pixel[1] < frames[frame_index]->GetDimensions()[1]) {
+    for (int d = 0; d < frames[frame_index]->GetChannelCount(); ++d) {
+      (*frames[frame_index])(pixel)[d] = rgb[d];
     }
-    texture->Upload(image->GetDimensions()[0], image->GetDimensions()[1], image->GetData());
+    uploadFrame();
   }
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::uploadFrame() {
+  texture->Upload(frames[frame_index]->GetDimensions()[0], frames[frame_index]->GetDimensions()[1], frames[frame_index]->GetData());
 }
 
 /* ------------------------------------------------------------------------- */
@@ -393,13 +385,39 @@ void CuadrosRenderer::scroll(int nTicks) {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::saveAs(const std::string &path) const {
-  image->Write(path);
+  frames[frame_index]->Write(path);
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::setColor(const td::QVector3<int> rgb) {
   this->rgb = rgb; 
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::setFrameIndex(int i) {
+  frame_index = i; 
+  uploadFrame();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int CuadrosRenderer::getFrameIndex() const {
+  return frame_index;
+}
+
+/* ------------------------------------------------------------------------- */
+
+int CuadrosRenderer::getFrameCount() const {
+  return frames.size();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::addFrame() {
+  frames.push_back(new NField<unsigned char, 2>(QVector2<int>(frames[0]->GetDimensions()[0], frames[0]->GetDimensions()[1]), 3));
+  frames[frames.size() - 1]->Clear(128);
 }
 
 /* ------------------------------------------------------------------------- */

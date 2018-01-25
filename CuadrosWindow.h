@@ -32,6 +32,7 @@ class CuadrosWindow : public QMainWindow {
 
     QComboBox *settings_picker;
     QComboBox *interpolation_picker;
+    QSpinBox *frame_spinner;
 
     QSlider *rgb_sliders[3];
     QSlider *hsv_sliders[3];

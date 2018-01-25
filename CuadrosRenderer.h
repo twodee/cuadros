@@ -40,11 +40,17 @@ class CuadrosRenderer {
     void saveAs(const std::string &path) const;
     void setColor(const td::QVector3<int> rgb);
 
+    void setFrameIndex(int i);
+    int getFrameIndex() const;
+    int getFrameCount() const;
+    void addFrame();
+
   private:
     void fill(int x, int y);
     void fill(int x1, int y1, int x2, int y2);
     void initializeBackground();
     void initializeImage();
+    void uploadFrame();
 
     td::VertexAttributes *background_attributes;
     td::VertexArray *background_array;
@@ -57,7 +63,7 @@ class CuadrosRenderer {
     td::Texture *texture;
 
     std::string path;
-    td::NField<unsigned char, 2> *image;
+    std::vector<td::NField<unsigned char, 2> *> frames;
     td::QMatrix4<float> projection;
     td::QMatrix4<float> modelview;
     int interpolation_mode;
@@ -65,6 +71,7 @@ class CuadrosRenderer {
     td::QVector2<int> mouse_at;
     float scale;
     td::QVector3<int> rgb;
+    int frame_index;
     
     const static int INTERPOLATION_NEAREST = 0;
     const static int INTERPOLATION_LINEAR = 1;

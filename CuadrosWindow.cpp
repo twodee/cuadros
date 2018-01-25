@@ -39,6 +39,7 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
 
   settings_picker = new QComboBox();
   settings_picker->addItem("Drawing");
+  settings_picker->addItem("Frames");
   settings_picker->addItem("Display");
 
   QStackedWidget *settings_pager = new QStackedWidget();
@@ -58,6 +59,23 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   display_page_layout->addWidget(interpolation_label, 0, 0, 1, 1);
   display_page_layout->addWidget(interpolation_picker, 0, 1, 1, 1);
   display_page_layout->addItem(vertical_spacer, 1, 0, 1, 2);
+
+  // --------------------------------------------------------------------------
+
+  QWidget *frames_page = new QWidget();
+
+  QPushButton *add_frame_button = new QPushButton("Add New Frame", frames_page);
+
+  QLabel *frame_label = new QLabel("Frame");
+  frame_spinner = new QSpinBox(frames_page);
+
+  QGridLayout *frames_page_layout = new QGridLayout(frames_page);
+  frames_page_layout->setSpacing(-1);
+  frames_page_layout->setContentsMargins(0, 0, 0, 0);
+  frames_page_layout->addWidget(add_frame_button, 0, 0, 1, 2);
+  frames_page_layout->addWidget(frame_label, 1, 0, 1, 1);
+  frames_page_layout->addWidget(frame_spinner, 1, 1, 1, 1);
+  frames_page_layout->addItem(vertical_spacer, 2, 0, 1, 1);
 
   // --------------------------------------------------------------------------
 
@@ -110,6 +128,7 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
 
   // Add pages
   settings_pager->addWidget(drawing_page);
+  settings_pager->addWidget(frames_page);
   settings_pager->addWidget(display_page);
 
   QVBoxLayout *settings_panel_layout = new QVBoxLayout(settings_panel);
@@ -154,6 +173,19 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   connect(interpolation_picker, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](int i) {
     canvas->makeCurrent(); // no effect without this
     renderer->setInterpolation(i);
+    canvas->update();
+  });
+
+  connect(add_frame_button, &QPushButton::clicked, [=](int i) {
+    canvas->makeCurrent(); // no effect without this
+    renderer->addFrame();
+    canvas->update();
+    frame_spinner->setMaximum(renderer->getFrameCount() - 1);
+  });
+
+  connect(frame_spinner, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](int i) {
+    canvas->makeCurrent(); // no effect without this
+    renderer->setFrameIndex(i);
     canvas->update();
   });
 
@@ -226,12 +258,14 @@ CuadrosWindow::~CuadrosWindow() {
 void CuadrosWindow::open(const std::string &path) {
   last_directory = QFileInfo(QString::fromStdString(path)).absolutePath();
   renderer->show(path);
+  frame_spinner->setMaximum(renderer->getFrameCount() - 1);
 }
 
 /* ------------------------------------------------------------------------- */
 
 void CuadrosWindow::open(int width, int height) {
   renderer->show(width, height);
+  frame_spinner->setMaximum(renderer->getFrameCount() - 1);
 }
 
 /* ------------------------------------------------------------------------- */
