@@ -8,6 +8,8 @@
 #include "twodee/NField.h"
 #include "twodee/QMatrix4.h"
 #include "twodee/QVector2.h"
+#include "twodee/QVector3.h"
+#include "twodee/QVector4.h"
 #include "twodee/ShaderProgram.h"
 #include "twodee/Texture.h"
 #include "twodee/VertexAttributes.h"
@@ -38,7 +40,7 @@ class CuadrosRenderer {
     td::QVector2<int> mouseToImage(int x, int y) const;
 
     void saveAs(const std::string &path) const;
-    void setColor(const td::QVector3<int> rgb);
+    void setColor(const td::QVector4<int> rgb);
 
     void setFrameIndex(int i);
     int getFrameIndex() const;
@@ -70,7 +72,7 @@ class CuadrosRenderer {
     td::QVector2<int> dimensions;
     td::QVector2<int> mouse_at;
     float scale;
-    td::QVector3<int> rgb;
+    td::QVector4<int> rgb;
     int frame_index;
     
     const static int INTERPOLATION_NEAREST = 0;

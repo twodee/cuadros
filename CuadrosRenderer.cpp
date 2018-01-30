@@ -17,7 +17,7 @@ CuadrosRenderer::CuadrosRenderer() :
   frames(),
   interpolation_mode(INTERPOLATION_NEAREST),
   scale(1.0f),
-  rgb(0, 0, 0) {
+  rgb(0, 0, 0, 255) {
   frame_index = -1;
 }
 
@@ -155,8 +155,10 @@ void CuadrosRenderer::initializeImage() {
   if (frames[frame_index]->GetChannelCount() == 1) {
     texture->Channels(Texture::GRAYSCALE);
   } else if (frames[frame_index]->GetChannelCount() == 3) {
+    std::cout << "3" << std::endl;
     texture->Channels(Texture::RGB);
   } else if (frames[frame_index]->GetChannelCount() == 4) {
+    std::cout << "4" << std::endl;
     texture->Channels(Texture::RGBA);
   } else {
     std::cout << "no!!!!!!!!!!" << std::endl;
@@ -178,6 +180,9 @@ void CuadrosRenderer::initializeGL() {
   glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  /* glPixelStorei(GL_PACK_ALIGNMENT, 1); */
+  /* glPixelStorei(GL_PACK_ROW_LENGTH, window_width); */
+  /* glPixelStorei(GL_PACK_IMAGE_HEIGHT, window_height); */
 
   initializeBackground();
   initializeImage();
@@ -390,7 +395,7 @@ void CuadrosRenderer::saveAs(const std::string &path) const {
 
 /* ------------------------------------------------------------------------- */
 
-void CuadrosRenderer::setColor(const td::QVector3<int> rgb) {
+void CuadrosRenderer::setColor(const td::QVector4<int> rgb) {
   this->rgb = rgb; 
 }
 
@@ -416,7 +421,7 @@ int CuadrosRenderer::getFrameCount() const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::addFrame() {
-  frames.push_back(new NField<unsigned char, 2>(QVector2<int>(frames[0]->GetDimensions()[0], frames[0]->GetDimensions()[1]), 3));
+  frames.push_back(new NField<unsigned char, 2>(QVector2<int>(frames[0]->GetDimensions()[0], frames[0]->GetDimensions()[1]), frames[0]->GetChannelCount()));
   frames[frames.size() - 1]->Clear(128);
 }
 

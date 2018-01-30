@@ -8,6 +8,7 @@
 #include <QComboBox>
 
 #include <twodee/QVector3.h>
+#include <twodee/QVector4.h>
 
 #include "CuadrosCanvas.h"
 
@@ -41,7 +42,7 @@ class CuadrosWindow : public QMainWindow {
     QPushButton *swatch;
 
     QString last_directory;
-    td::QVector3<int> rgb;
+    td::QVector4<int> rgb;
 };
 
 /* ------------------------------------------------------------------------- */
