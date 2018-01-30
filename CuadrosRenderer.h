@@ -47,12 +47,19 @@ class CuadrosRenderer {
     int getFrameCount() const;
     void addFrame();
 
+    enum {
+      DRAW,
+      RECTANGLE_SELECT
+    };
+
   private:
     void fill(int x, int y);
     void fill(int x1, int y1, int x2, int y2);
     void initializeBackground();
     void initializeImage();
+    void initializeLasso();
     void uploadFrame();
+    void updateLasso();
 
     td::VertexAttributes *background_attributes;
     td::VertexArray *background_array;
@@ -63,6 +70,10 @@ class CuadrosRenderer {
     td::VertexArray *array;
     td::ShaderProgram *program;
     td::Texture *texture;
+
+    td::VertexAttributes *lasso_attributes;
+    td::VertexArray *lasso_array;
+    td::ShaderProgram *lasso_program;
 
     std::string path;
     std::vector<td::NField<unsigned char, 2> *> frames;
@@ -77,6 +88,11 @@ class CuadrosRenderer {
     
     const static int INTERPOLATION_NEAREST = 0;
     const static int INTERPOLATION_LINEAR = 1;
+
+    int mode;
+    td::QVector2<int> rectangle1;
+    td::QVector2<int> rectangle2;
+    bool has_selection;
 };
 
 #endif

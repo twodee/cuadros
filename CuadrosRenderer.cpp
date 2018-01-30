@@ -17,7 +17,9 @@ CuadrosRenderer::CuadrosRenderer() :
   frames(),
   interpolation_mode(INTERPOLATION_NEAREST),
   scale(1.0f),
-  rgb(0, 0, 0, 255) {
+  rgb(0, 0, 0, 255),
+  mode(RECTANGLE_SELECT),
+  has_selection(false) {
   frame_index = -1;
 }
 
@@ -176,16 +178,56 @@ void CuadrosRenderer::initializeImage() {
 
 /* ------------------------------------------------------------------------- */
 
+void CuadrosRenderer::initializeLasso() {
+  float positions[] = {
+    -1.0f, -1.0f,
+    1.0f, -1.0f,
+    1.0f, 1.0f,
+    -1.0f, 1.0f
+  };
+
+  lasso_attributes = new VertexAttributes();
+  lasso_attributes->AddAttribute("position", 4, 2, positions);
+  OpenGL::CheckError("after attributes");
+
+  std::string vertex_source =
+    "#version 410\n"
+    "\n"
+    "uniform mat4 projection;\n"
+    "uniform mat4 modelview;\n"
+    "\n"
+    "in vec3 position;\n"
+    "\n"
+    "void main() {\n"
+    "  gl_Position = projection * modelview * vec4(position, 1.0);\n"
+    "}\n";
+
+  std::string fragment_source =
+    "#version 410\n"
+    "\n"
+    "out vec4 frag_color;\n"
+    "\n"
+    "void main() {\n"
+    "  frag_color = vec4(0.0, 0.0, 0.0, 1.0);\n"
+    "}\n";
+
+  lasso_program = ShaderProgram::FromSource(vertex_source, fragment_source);
+  OpenGL::CheckError("after program");
+
+  lasso_array = new VertexArray(*lasso_program, *lasso_attributes);
+  OpenGL::CheckError("after array");
+}
+
+/* ------------------------------------------------------------------------- */
+
 void CuadrosRenderer::initializeGL() {
   glClearColor(100 / 255.0f, 149 / 255.0f, 237 / 255.0f, 1.0f);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  /* glPixelStorei(GL_PACK_ALIGNMENT, 1); */
-  /* glPixelStorei(GL_PACK_ROW_LENGTH, window_width); */
-  /* glPixelStorei(GL_PACK_IMAGE_HEIGHT, window_height); */
 
   initializeBackground();
   initializeImage();
+  initializeLasso();
 
   modelview = QMatrix4<float>(1.0f);
 }
@@ -231,6 +273,14 @@ void CuadrosRenderer::render() {
   texture->Unbind();
   program->Unbind();
 
+  lasso_program->Bind();
+  lasso_program->SetUniform("projection", projection);
+  lasso_program->SetUniform("modelview", modelview);
+  lasso_array->Bind();
+  lasso_array->DrawSequence(GL_LINE_LOOP);
+  lasso_array->Unbind();
+  lasso_program->Unbind();
+
   OpenGL::CheckError("after render");
 }
 
@@ -273,7 +323,13 @@ int CuadrosRenderer::getInterpolation() const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDownAt(int x, int y) {
-  fill(x, y);
+  if (mode == DRAW) {
+    fill(x, y);
+  } else if (mode == RECTANGLE_SELECT) {
+    rectangle1 = mouseToImage(x, y);
+    rectangle2 = rectangle1;
+    updateLasso();
+  }
   mouse_at[0] = x;
   mouse_at[1] = y;
 }
@@ -317,7 +373,13 @@ td::QVector2<int> CuadrosRenderer::mouseToImage(int x, int y) const {
 /* ------------------------------------------------------------------------- */
 
 void CuadrosRenderer::leftMouseDraggedTo(int x, int y) {
-  fill(mouse_at[0], mouse_at[1], x, y);
+  if (mode == RECTANGLE_SELECT) {
+    has_selection = true;
+    rectangle2 = mouseToImage(x, y);
+    updateLasso();
+  } else if (mode == DRAW) {
+    fill(mouse_at[0], mouse_at[1], x, y);
+  }
   mouse_at[0] = x;
   mouse_at[1] = y;
 }
@@ -423,6 +485,32 @@ int CuadrosRenderer::getFrameCount() const {
 void CuadrosRenderer::addFrame() {
   frames.push_back(new NField<unsigned char, 2>(QVector2<int>(frames[0]->GetDimensions()[0], frames[0]->GetDimensions()[1]), frames[0]->GetChannelCount()));
   frames[frames.size() - 1]->Clear(128);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::updateLasso() {
+  VertexAttribute *attribute = lasso_attributes->GetAttribute("position");  
+
+  float l = Utilities::Minimum(rectangle1[0], rectangle2[0]);
+  float r = Utilities::Maximum(rectangle1[0], rectangle2[0]);
+  float b = Utilities::Minimum(rectangle1[1], rectangle2[1]);
+  float t = Utilities::Maximum(rectangle1[1], rectangle2[1]);
+  float positions[] = {
+    l, b,
+    r, b,
+    r, t,
+    l, t
+  };
+
+  float *position = positions;
+  for (int i = 0; i < 4; ++i) {
+    position[0] = position[0] / frames[frame_index]->GetDimensions()[0] * 2 - 1;
+    position[1] = position[1] / frames[frame_index]->GetDimensions()[1] * 2 - 1;
+    position += 2;
+  }
+
+  attribute->Update(positions);
 }
 
 /* ------------------------------------------------------------------------- */
