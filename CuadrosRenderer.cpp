@@ -15,6 +15,7 @@ CuadrosRenderer::CuadrosRenderer() :
   array(NULL),
   program(NULL),
   frames(),
+  clipboard(NULL),
   interpolation_mode(INTERPOLATION_NEAREST),
   scale(1.0f),
   rgb(0, 0, 0, 255),
@@ -511,6 +512,49 @@ void CuadrosRenderer::updateLasso() {
   }
 
   attribute->Update(positions);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::copy() {
+  delete clipboard;
+
+  int l = Utilities::Minimum(rectangle1[0], rectangle2[0]);
+  int r = Utilities::Maximum(rectangle1[0], rectangle2[0]);
+  int b = Utilities::Minimum(rectangle1[1], rectangle2[1]);
+  int t = Utilities::Maximum(rectangle1[1], rectangle2[1]);
+
+  clipboard = frames[frame_index]->GetSubfield(QVector2<int>(l, b), QVector2<int>(t, r));
+  std::cout << "copied" << std::endl;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::cut() {
+  delete clipboard;
+
+  int l = Utilities::Minimum(rectangle1[0], rectangle2[0]);
+  int r = Utilities::Maximum(rectangle1[0], rectangle2[0]);
+  int b = Utilities::Minimum(rectangle1[1], rectangle2[1]);
+  int t = Utilities::Maximum(rectangle1[1], rectangle2[1]);
+
+  clipboard = frames[frame_index]->GetSubfield(QVector2<int>(l, b), QVector2<int>(t, r));
+
+  for (int y = b; y <= t; ++y) {
+    for (int x = l; x <= r; ++x) {
+      for (int d = 0; d < frames[frame_index]->GetChannelCount(); ++d) {
+        (*frames[frame_index])(QVector2<int>(x, y))[d] = 0;
+      }
+    }
+  }
+
+  uploadFrame();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void CuadrosRenderer::paste() {
+  std::cout << "paste" << std::endl;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -47,6 +47,10 @@ class CuadrosRenderer {
     int getFrameCount() const;
     void addFrame();
 
+    void copy();
+    void cut();
+    void paste();
+
     enum {
       DRAW,
       RECTANGLE_SELECT
@@ -77,6 +81,7 @@ class CuadrosRenderer {
 
     std::string path;
     std::vector<td::NField<unsigned char, 2> *> frames;
+    td::NField<unsigned char, 2> *clipboard;
     td::QMatrix4<float> projection;
     td::QMatrix4<float> modelview;
     int interpolation_mode;

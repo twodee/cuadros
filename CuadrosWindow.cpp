@@ -155,9 +155,26 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   action_open->setText("Open");
   action_open->setShortcut(Qt::CTRL + Qt::Key_O);
 
+  QAction *action_copy = new QAction(this);
+  action_copy->setText("Copy");
+  action_copy->setShortcut(Qt::CTRL + Qt::Key_C);
+
+  QAction *action_cut = new QAction(this);
+  action_cut->setText("Cut");
+  action_cut->setShortcut(Qt::CTRL + Qt::Key_X);
+
+  QAction *action_paste = new QAction(this);
+  action_paste->setText("Paste");
+  action_paste->setShortcut(Qt::CTRL + Qt::Key_V);
+
   QMenu *menuFile = new QMenu("File");
   menuFile->addAction(action_save_as);
   menuFile->addAction(action_open);
+
+  QMenu *menuEdit = new QMenu("Edit");
+  menuEdit->addAction(action_copy);
+  menuEdit->addAction(action_cut);
+  menuEdit->addAction(action_paste);
 
   QMenu *menuView = new QMenu("View");
   menuView->addAction(action_save_as);
@@ -165,8 +182,10 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
   setWindowTitle("Cuadros");
 
   menuBar->addMenu(menuFile);
+  menuBar->addMenu(menuEdit);
   menuBar->addMenu(menuView);
   menuBar->addAction(menuFile->menuAction());
+  menuBar->addAction(menuEdit->menuAction());
   menuBar->addAction(menuView->menuAction());
 
   // Actions
@@ -208,6 +227,24 @@ CuadrosWindow::CuadrosWindow(QWidget *parent) :
       window->show();
       window->resize(768, 512);
     }
+  });
+
+  connect(action_copy, &QAction::triggered, [=]() {
+    canvas->makeCurrent(); // no effect without this
+    renderer->copy();
+    canvas->update();
+  });
+
+  connect(action_cut, &QAction::triggered, [=]() {
+    canvas->makeCurrent(); // no effect without this
+    renderer->cut();
+    canvas->update();
+  });
+
+  connect(action_paste, &QAction::triggered, [=]() {
+    canvas->makeCurrent(); // no effect without this
+    renderer->paste();
+    canvas->update();
   });
 
   auto on_rgb_slider_changed = [=](int i) {
